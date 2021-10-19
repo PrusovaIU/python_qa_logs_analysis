@@ -27,11 +27,11 @@ class LogRecord:
         self.__request = result.group(3)
         self.__answer_code = int(result.group(4))
         self.__answer_size = int(result.group(5))
-        self.__reference = result.group(6)
+        self.__url = result.group(6)
         self.__user_agent = result.group(7)
         self.__request_duration = int(result.group(8))
-        request_type = self.__request.partition(' ')[0]
-        self.__request_type: int = self.REQUEST_TYPE.get(request_type, -1)
+        self.__request_type_name = self.__request.partition(' ')[0]
+        self.__request_type: int = self.REQUEST_TYPE.get(self.__request_type_name, -1)
 
     @property
     def answer_code(self) -> int:
@@ -50,10 +50,6 @@ class LogRecord:
         return self.__date
 
     @property
-    def reference(self) -> str:
-        return self.__reference
-
-    @property
     def request(self) -> str:
         return self.__request
 
@@ -66,7 +62,15 @@ class LogRecord:
         return self.__request_type
 
     @property
+    def request_type_name(self) -> str:
+        return self.__request_type_name
+
+    @property
     def user_agent(self) -> str:
         return self.__user_agent
+
+    @property
+    def url(self) -> str:
+        return self.__url
 
 
