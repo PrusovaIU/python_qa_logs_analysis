@@ -1,5 +1,4 @@
 from .log_record import LogRecord, RequestType
-from collections import ItemsView
 from json import dumps
 from ipaddress import IPv4Address
 from time import strftime
@@ -34,7 +33,7 @@ def summarize_record_by_client(logs: LOGS_TYPE) -> Dict[IPv4Address, int]:
     return amounts
 
 
-def get_top_clients(logs: LOGS_TYPE, amount: int) -> ItemsView[IPv4Address, int]:
+def get_top_clients(logs: LOGS_TYPE, amount: int) -> List[Tuple[IPv4Address, int]]:
     """
     Count amount of request by every client
     :param logs: list of logs
@@ -42,9 +41,9 @@ def get_top_clients(logs: LOGS_TYPE, amount: int) -> ItemsView[IPv4Address, int]
     :return: required amount of clients with the highest number of requests
     """
     amount_logs_by_client: Dict[IPv4Address, int] = summarize_record_by_client(logs)
-    sorted_logs_by_client: ItemsView[IPv4Address, int] = sorted(amount_logs_by_client.items(),
-                                                                key=lambda _item: _item[1], reverse=True)
-    return sorted_logs_by_client[:amount]
+    sorted_logs_by_client: List[Tuple[IPv4Address, int]] = sorted(amount_logs_by_client.items(),
+                                                                  key=lambda _item: _item[1], reverse=True)
+    return list(sorted_logs_by_client[:amount])
 
 
 def get_top_requests(logs: LOGS_TYPE, amount: int) -> List[LogRecord]:
@@ -54,7 +53,7 @@ def get_top_requests(logs: LOGS_TYPE, amount: int) -> List[LogRecord]:
     :param amount: required amount of logs
     :return: required amount of the longest requests
     """
-    sorted_logs_by_duration = sorted(logs, key=lambda log: log.duration, reverse=True)
+    sorted_logs_by_duration = sorted(logs, key=lambda log: log.request_duration, reverse=True)
     return sorted_logs_by_duration[:amount]
 
 
@@ -71,12 +70,12 @@ def form(logs: LOGS_TYPE) -> (str, str):
     put_logs_amount = count_record_by_request_type(logs, RequestType.PUT)
     delete_logs_amount = count_record_by_request_type(logs, RequestType.DELETE)
 
-    top_clients: ItemsView[IPv4Address, int] = get_top_clients(logs, 3)
+    top_clients: List[Tuple[IPv4Address, int]] = get_top_clients(logs, 3)
     top_clients_str = [f"\t{str(item[0])}: {item[1]} requests" for item in top_clients]
     top_clients_str = str('\n').join(top_clients_str)
 
     top_requests: List[LogRecord] = get_top_requests(logs, 3)
-    top_requests_str = [f"\tTYPE: {log.request_type_name} URL: {log.url} IP: {log.client_ip} " \
+    top_requests_str = [f"\tTYPE: {log.request_type_name} URL: {log.url} IP: {log.client_ip} " 
                         f"TIME: {strftime('%d-%m-%Y %H:%M:%S', log.date)} DURATION: {log.request_duration}"
                         for log in top_requests]
     top_requests_str = str('\n').join(top_requests_str)
@@ -106,7 +105,7 @@ def form(logs: LOGS_TYPE) -> (str, str):
         "top3_requests": [{
             "TYPE": log.request_type_name,
             "URL": log.url,
-            "IP": log.client_ip,
+            "IP": str(log.client_ip),
             "TIME": strftime('%d-%m-%Y %H:%M:%S', log.date),
             "DURATION": log.request_duration
         } for log in top_requests]
