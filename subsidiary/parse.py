@@ -1,6 +1,7 @@
 from .log_record import LogRecord
 from os import listdir
 from os.path import normpath
+from progress.bar import IncrementalBar
 from re import match
 from typing import List, Tuple
 
@@ -18,9 +19,12 @@ def file_parse(file_path: str) -> Tuple[LogRecord]:
     logs: List[LogRecord] = list()
     with open(file_path, 'r') as file:
         lines = file.readlines()
+    bar = IncrementalBar(file_path, max=len(lines))
     for line in lines:
         try:
             logs.append(LogRecord(line))
         except (IndexError, ValueError, AssertionError) as err:
             print(f"File {file_path}\n\tLine: {line}Unexpected format\nError: {err}")
+        bar.next()
+    bar.finish()
     return tuple(logs)

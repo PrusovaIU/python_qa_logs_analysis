@@ -11,7 +11,7 @@ class RequestType:
 
 
 class LogRecord:
-    REGEX = r"(\S{7,15}) - - \[(.+)] \"(.+)\" (\d+) (\d+) \"(.+)\" \"(.+)\" (\d+)"
+    REGEX = r"(\S{7,15}) - (.+) \[(.+)] \"(.+)\" (\d+) (\d+|-) \"(.*)\" \"(.*)\" (\d+)"
     REQUEST_TYPE = {
         "GET": RequestType.GET,
         "POST": RequestType.POST,
@@ -21,15 +21,20 @@ class LogRecord:
 
     def __init__(self, log_line: str):
         result = match(self.REGEX, log_line)
-        assert result is not None
+        assert result is not None, "Wrong format"
         self.__client_ip = IPv4Address(result.group(1))
-        self.__date = strptime(result.group(2), "%d/%b/%Y:%H:%M:%S %z")
-        self.__request = result.group(3)
-        self.__answer_code = int(result.group(4))
-        self.__answer_size = int(result.group(5))
-        self.__url = result.group(6)
-        self.__user_agent = result.group(7)
-        self.__request_duration = int(result.group(8))
+        self.__user = result.group(2)
+        self.__date = strptime(result.group(3), "%d/%b/%Y:%H:%M:%S %z")
+        self.__request = result.group(4)
+        self.__answer_code = int(result.group(5))
+        answer_size = result.group(6)
+        if answer_size.isdigit():
+            self.__answer_size = int(answer_size)
+        else:
+            self.__answer_size = -1
+        self.__url = result.group(7)
+        self.__user_agent = result.group(8)
+        self.__request_duration = int(result.group(9))
         self.__request_type_name = self.__request.partition(' ')[0]
         self.__request_type: int = self.REQUEST_TYPE.get(self.__request_type_name, -1)
 

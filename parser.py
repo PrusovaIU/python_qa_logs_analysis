@@ -23,5 +23,7 @@ if __name__ == '__main__':
 
     report_str, report_json = form_report(logs)
     print(report_str)
-    with open(normpath(f"{CURRENT_DIR}/report.json"), 'w') as file:
+    report_json_path = normpath(f"{CURRENT_DIR}/report.json")
+    with open(report_json_path, 'w') as file:
         file.write(report_json)
+    print(f"File {report_json_path} has been written")
