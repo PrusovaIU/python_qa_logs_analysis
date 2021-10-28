@@ -112,3 +112,12 @@ def form(logs: LOGS_TYPE) -> (str, str):
     }
 
     return report_str, dumps(report_dict, indent=3)
+
+
+def report(logs: LOGS_TYPE, report_file_path: str, source_file_name: str):
+    report_str, report_json = form(logs)
+    print(f"\n\033[4m{source_file_name}\033[0m")
+    print(report_str)
+    with open(report_file_path, 'w') as file:
+        file.write(report_json)
+    print(f"File {report_file_path} has been written")

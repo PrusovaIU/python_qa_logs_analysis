@@ -1,11 +1,13 @@
-from os.path import dirname, normpath
+from contextlib import suppress
+from os import mkdir, getcwd
+from os.path import normpath, split
 from subsidiary import parse
-from subsidiary.form_report import form as form_report
-from typing import Tuple
+from subsidiary.form_report import report
+from typing import Tuple, Dict
 import argparse
 
 
-CURRENT_DIR = dirname(__file__)
+CURRENT_DIR = getcwd()
 
 
 if __name__ == '__main__':
@@ -14,16 +16,16 @@ if __name__ == '__main__':
     parser.add_argument("-f", "--file", default='', help="Absolute path to file with logs")
 
     args = parser.parse_args()
-    logs: Tuple[parse.LogRecord] = tuple()
+    report_path = f"{CURRENT_DIR}/reports"
+    with suppress(FileExistsError):
+        mkdir(report_path)
     if args.file != '':
-        logs = parse.file_parse(args.file)
+        logs: Tuple[parse.LogRecord] = parse.file_parse(args.file)
+        file_name = split(args.file)[1]
+        file_name = file_name.split('.')[0]
+        report(logs, normpath(f"{report_path}/{file_name}"), file_name)
     else:
-        logs, files = parse.dir_parse(args.dir)
-        print(f"Files have been found: {str(' ').join(files)}\n")
-
-    report_str, report_json = form_report(logs)
-    print(report_str)
-    report_json_path = normpath(f"{CURRENT_DIR}/report.json")
-    with open(report_json_path, 'w') as file:
-        file.write(report_json)
-    print(f"File {report_json_path} has been written")
+        logs: Dict[str, Tuple[parse.LogRecord]] = parse.dir_parse(args.dir)
+        print(f"Files have been found: {str(' ').join(logs.keys())}\n")
+        for file_name, logs_list in logs.items():
+            report(logs_list, normpath(f"{report_path}/{file_name}"), file_name)

@@ -3,16 +3,17 @@ from os import listdir
 from os.path import normpath
 from progress.bar import IncrementalBar
 from re import match
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 
-def dir_parse(dir_path: str) -> (Tuple[LogRecord], Tuple[str]):
+def dir_parse(dir_path: str) -> Dict[str, Tuple[LogRecord]]:
     files = [file for file in listdir(dir_path) if match(r".+\.log", file) is not None]
-    logs: List[LogRecord] = list()
+    logs: Dict[str, Tuple[LogRecord]] = dict()
     for file in files:
-        new_logs: Tuple[LogRecord] = file_parse(normpath(f"{dir_path}/{file}"))
-        logs.extend(new_logs)
-    return logs, files
+        file_path = normpath(f"{dir_path}/{file}")
+        new_logs: Tuple[LogRecord] = file_parse(file_path)
+        logs[file.split('.')[0]] = new_logs
+    return logs
 
 
 def file_parse(file_path: str) -> Tuple[LogRecord]:
